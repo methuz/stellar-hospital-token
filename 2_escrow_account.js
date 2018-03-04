@@ -70,13 +70,13 @@ async function sendFund (from, to, amount) {
 async function getEscrowAccount () {
   try {
     saveConfigSync()
-    await govCreateAccount('5')
+    await govCreateAccount(5)
     await setJointAccount()
     await sendFund(ngoKey, newKey, 100)
-    await sendFund(govKey, newKey, 95)
-    console.log('Setting escrow account success!!');
+    await sendFund(govKey, newKey, 100)
+    console.log('Setting escrow account success!!')
   } catch (error) {
-      console.log("error = ", JSON.stringify(error, null, 4));
+    console.log('error = ', JSON.stringify(error, null, 4))
   }
 }
 
