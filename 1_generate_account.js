@@ -29,7 +29,7 @@ async function generateAccounts () {
       console.log('account.pair.publicKey() = ', account.pair.publicKey())
       await server.submitTransaction(account.transaction)
     } catch (error) {
-      console.log('Submit Error = ', JSON.stringify(error, null, 4))
+      console.log('error = ', error.message, JSON.stringify(error.stack, null, 4))
     }
 
     // Update Config

@@ -8,11 +8,11 @@ const config = YAML.readSync(configFile)
 const server = new StellarSdk.Server('https://horizon-testnet.stellar.org')
 StellarSdk.Network.useTestNetwork()
 
+const contractorKey = StellarSdk.Keypair.fromSecret(config.accounts.contractor.secret)
 const escrowKey = StellarSdk.Keypair.fromSecret(config.accounts.joint_account.secret)
 const govKey = StellarSdk.Keypair.fromSecret(config.accounts.gov.secret)
-const ngoKey = StellarSdk.Keypair.fromSecret(config.accounts.ngo.secret)
 const issuerKey = StellarSdk.Keypair.fromSecret(config.accounts.issuer.secret)
-const contractorKey = StellarSdk.Keypair.fromSecret(config.accounts.contractor.secret)
+const ngoKey = StellarSdk.Keypair.fromSecret(config.accounts.ngo.secret)
 
 const newAsset = new StellarSdk.Asset(config.token.name, issuerKey.publicKey())
 
@@ -26,21 +26,16 @@ async function createICOContract () {
     const offers = await getOfferId(escrowAccount)
     const offerId = offers.records[0].id
 
-    const sequence = escrowAccount.sequenceNumber()
-
-    console.log('offerId = ', JSON.stringify(offerId, null, 4))
-    console.log('sequence = ', JSON.stringify(sequence, null, 4))
-
     // Create success and fail transaction on N+2 sequence but not submit it
     console.log('Creating claim tx')
     const successTx = await getSuccessTransaction()
-    const failTx =  await getFailTransaction(offerId)
+    const failTx = await getFailTransaction(offerId)
 
     /// / Pre-autorization success and fail tx on N+1 sequence
     await preAuthTransactions(escrowKey, [successTx.hash(), failTx.hash()])
+    console.log('Everything is Success!! Congratulations!!!')
   } catch (error) {
-    console.log('error = ', JSON.stringify(error.message, null, 4))
-    console.log('error = ', JSON.stringify(error.stack, null, 4))
+    console.log('error = ', error.message, JSON.stringify(error.stack, null, 4))
   }
 }
 
@@ -83,9 +78,8 @@ async function getSuccessTransaction () {
     amount: '100'
   })).build()
 
-
   console.log('success transaction hash = ', transaction.hash().toString('base64'))
-  console.log('XDR = ', decodeURIComponent(transaction.toEnvelope().toXDR().toString("base64")))
+  console.log('XDR = ', decodeURIComponent(transaction.toEnvelope().toXDR().toString('base64')))
   return transaction
 }
 
@@ -102,12 +96,12 @@ async function getFailTransaction (offerId) {
     }
   }).addOperation(StellarSdk.Operation.manageOffer({
     // Cancle ICO Offer
-      selling: newAsset,
-      buying: StellarSdk.Asset.native(),
-      amount: '0',
-      offerId,
-      price: 1
-    }))
+    selling: newAsset,
+    buying: StellarSdk.Asset.native(),
+    amount: '0',
+    offerId,
+    price: 1
+  }))
     // Create offer to claim back donor's fund
     .addOperation(StellarSdk.Operation.manageOffer({
       selling: StellarSdk.Asset.native(),
@@ -128,8 +122,8 @@ async function getFailTransaction (offerId) {
       amount: '100'
     })).build()
 
-  console.log("fail transaction hash = ", transaction.hash().toString('base64'))
-  console.log('XDR = ', decodeURIComponent(transaction.toEnvelope().toXDR().toString("base64")))
+  console.log('fail transaction hash = ', transaction.hash().toString('base64'))
+  console.log('XDR = ', decodeURIComponent(transaction.toEnvelope().toXDR().toString('base64')))
   return transaction
 }
 
@@ -145,17 +139,18 @@ async function preAuthTransactions (escrowKey, preAuthTxHashes) {
     transactionBuilder.addOperation(StellarSdk.Operation.setOptions({
       signer: {
         preAuthTx: preAuthTxHashes[i],
-        weight: '1'
+        // Weight should hit the threshould
+        weight: '255'
       }
     }))
   }
 
-   //Lock account so no further transaction can be submit
-   //transactionBuilder.addOperation(StellarSdk.Operation.setOptions({
-   //   lowThreshold: 255,
-   //   medThreshold: 255,
-   //   highThreshold: 255,
-   // }))
+  // Lock account so no further transaction can be submit
+  transactionBuilder.addOperation(StellarSdk.Operation.setOptions({
+    lowThreshold: 255,
+    medThreshold: 255,
+    highThreshold: 255
+  }))
 
   const transaction = transactionBuilder.build()
 

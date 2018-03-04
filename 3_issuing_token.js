@@ -21,8 +21,9 @@ async function main () {
   try {
     await changeEscrowTrust()
     await issuingToken()
+    console.log('Success!')
   } catch (error) {
-    console.log('error = ', JSON.stringify(error, null, 4))
+    console.log('error = ', error.message, JSON.stringify(error.stack, null, 4))
   }
 }
 
@@ -31,8 +32,7 @@ async function changeEscrowTrust () {
   const escrowAccount = await server.loadAccount(escrowKey.publicKey())
   const transaction = new StellarSdk.TransactionBuilder(escrowAccount)
     .addOperation(StellarSdk.Operation.changeTrust({
-      asset: newAsset,
-      limit: config.token.max_amount.toString()
+      asset: newAsset
     }))
     .build()
   transaction.sign(govKey)

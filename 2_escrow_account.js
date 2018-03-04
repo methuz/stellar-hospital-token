@@ -74,9 +74,9 @@ async function getEscrowAccount () {
     await setJointAccount()
     await sendFund(ngoKey, newKey, 100)
     await sendFund(govKey, newKey, 100)
-    console.log('Setting escrow account success!!')
+    console.log('Success!!')
   } catch (error) {
-    console.log('error = ', JSON.stringify(error, null, 4))
+    console.log('error = ', error.message, JSON.stringify(error.stack, null, 4))
   }
 }
 

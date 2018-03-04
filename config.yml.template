@@ -1,0 +1,12 @@
+token:
+  name: toon
+  max_amount: 100
+  start: 2018-03-04T00:36:55.299Z
+  end: 2018-03-04T03:37:55.299Z
+  recovery: 2018-03-04T03:38:55.299Z
+init:
+  starting_balance: 120
+accounts:
+  master:
+    public: COCHAIN
+    secret: COCHAIN
